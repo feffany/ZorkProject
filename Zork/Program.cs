@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Zork
 {
@@ -9,7 +10,10 @@ namespace Zork
             Console.WriteLine("Welcome to Zork!");
 
             string inputString = Console.ReadLine();
-            inputString = inputString.ToUpper();
+            Commands command = ToCommand(inputString.Trim().ToUpper());
+            Console.WriteLine(command);
+
+            /*inputString = inputString.ToUpper();
 
             if(inputString == "QUIT")
             {
@@ -22,6 +26,18 @@ namespace Zork
             else
             {
                 Console.WriteLine("Unrecognized command.");
+            }*/
+        }
+
+        private static Commands ToCommand(string commandString)
+        {
+            if(Enum.TryParse<Commands>(commandString, true, out Commands result))
+            {
+                return result;
+            }
+            else
+            {
+                return Commands.UNKNOWN;
             }
         }
     }
