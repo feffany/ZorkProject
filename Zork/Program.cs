@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.IO;
 
 namespace Zork
 {
@@ -19,7 +21,10 @@ namespace Zork
             Console.WriteLine("Welcome to Zork!");
 
             Commands command = Commands.UNKNOWN;
-            InitializeRoomDescriptions();
+            //string roomsFilename = "Rooms.txt";
+            const string defaultRoomsFilename = "Rooms.txt";
+            string roomsFilename = (args.Length > 0 ? args[(int)CommandLineArguments.RoomsFilename] : defaultRoomsFilename);
+            InitializeRoomDescriptions(roomsFilename);
 
             Room previousRoom = null;
 
@@ -110,9 +115,49 @@ namespace Zork
             {new Room("Dense Woods"), new Room("North of House"), new Room("Clearing")}
         };
 
-        private static void InitializeRoomDescriptions()
+        private static readonly Dictionary<string, Room> RoomMap;
+
+        private enum Fields
         {
-            var roomMap = new Dictionary<string, Room>();
+            Name = 0,
+            Description
+        }
+
+        private enum CommandLineArguments
+        {
+            RoomsFilename = 0
+        }
+
+        static Program()
+        {
+            RoomMap = new Dictionary<string, Room>();
+            foreach(Room room in Rooms)
+            {
+                RoomMap[room.Name] = room;
+            }
+        }
+
+        private static void InitializeRoomDescriptions(string roomsFilename)
+        {
+            const string fieldDelimiter = "##";
+            const int expectedFieldCount = 2;
+
+            string[] lines = File.ReadAllLines(roomsFilename);
+            foreach(string line in lines)
+            {
+                string[] fields = line.Split(fieldDelimiter);
+                if(fields.Length != expectedFieldCount)
+                {
+                    throw new InvalidDataException("Invalid record.");
+                }
+
+                string name = fields[(int)Fields.Name];
+                string description = fields[(int)Fields.Description];
+
+                RoomMap[name].Description = description;
+            }
+
+            /*var roomMap = new Dictionary<string, Room>();
             foreach(Room room in Rooms)
             {
                 roomMap[room.Name] = room;
@@ -127,6 +172,7 @@ namespace Zork
             roomMap["Dense Woods"].Description = "This is a dimly lit forest, with large trees all around. To the east, there appears to be sunlight.";
             roomMap["North of House"].Description = "You are facing the north side of a large house. There is no door here, and all the windows are barred.";
             roomMap["Clearing"].Description = "You are in a clearing, with a forest surrounding you on the west and south.";
+            */
         }
 
         private static readonly List<Commands> Directions = new List<Commands>
